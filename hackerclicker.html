@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Clicker Simulator | Made by Kingsley</title>
+    <style>
+        body {
+            font-family: "Courier New", Courier, monospace;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #0f0;
+        }
+        h1 {
+            margin-top: 50px;
+            font-size: 36px;
+        }
+        .subtitle {
+            font-size: 20px;
+            margin-top: 10px;
+            color: #0f0;
+        }
+        #hackButton, #autoHackButton, #startAutoHackButton, #stopAutoHackButton, .shopButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+        }
+        #hackButton:disabled, #autoHackButton:disabled, #startAutoHackButton:disabled, #stopAutoHackButton:disabled, .shopButton:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        #output {
+            font-size: 16px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            text-align: left;
+            margin: 20px auto;
+            width: 80%;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #0f0;
+            padding: 10px;
+            background-color: #111;
+        }
+        #stats {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .shop {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .shop-item {
+            margin: 10px 0;
+        }
+        .scroll-message {
+            margin-top: 20px;
+            font-size: 24px; /* Increased font size */
+            font-weight: bold; /* Added bold text */
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hacker Clicker Simulator</h1>
+    <p class="subtitle">Made by Kingsley</p>
+    <p class="scroll-message">Scroll down to the shop to upgrade your hacking power!</p>
+    <p>Click the button to "hack" lines of code and earn hacker points!</p>
+    <button id="hackButton" onclick="hack()">Hack</button>
+    <button id="autoHackButton" onclick="buyAutoHack()">Buy Auto-Hack (Cost: 100,000 Points)</button>
+    <button id="startAutoHackButton" onclick="startAutoHack()" disabled>Start Auto-Hack</button>
+    <button id="stopAutoHackButton" onclick="stopAutoHack()">Stop Auto-Hack</button>
+    <div id="stats">
+        <p>Hacker Points: <span id="hackerPoints">0</span></p>
+        <p>Hack Coins Per Click: <span id="coinsPerClick">1</span></p>
+        <p>Hack Coins Per Second: <span id="coinsPerSecond">0</span></p>
+    </div>
+    <div id="output"></div>
+
+    <div class="shop">
+        <h2>Hack Shop</h2>
+        <div class="shop-item">
+            <p>Upgrade Hack Coins Per Click (Cost: <span id="clickUpgradeCost">200</span> Points)</p>
+            <button class="shopButton" onclick="upgradeClick()">Upgrade Click</button>
+        </div>
+        <div class="shop-item">
+            <p>Upgrade Hack Coins Per Second (Cost: <span id="cpsUpgradeCost">15</span> Points)</p>
+            <button class="shopButton" onclick="upgradeCPS()">Upgrade Coins Per Second</button>
+        </div>
+        <div class="shop-item">
+            <p>Upgrade Machine 1 (Cost: <span id="machine1Cost">50</span> Points)</p>
+            <button class="shopButton" onclick="buyMachine(1)">Buy Machine 1</button>
+        </div>
+        <div class="shop-item">
+            <p>Upgrade Machine 2 (Cost: <span id="machine2Cost">100</span> Points)</p>
+            <button class="shopButton" onclick="buyMachine(2)">Buy Machine 2</button>
+        </div>
+        <div class="shop-item">
+            <p>Upgrade Machine 3 (Cost: <span id="machine3Cost">200</span> Points)</p>
+            <button class="shopButton" onclick="buyMachine(3)">Buy Machine 3</button>
+        </div>
+    </div>
+
+    <script>
+        let hackedLines = 0;
+        let hackerPoints = 0;
+        let coinsPerClick = 1;
+        let coinsPerSecond = 0; // Start at 0
+        let cpsUpgradeCost = 15; // Initial cost for CPS upgrade
+        let autoHackCost = 100000; // Cost for Auto-Hack
+        let autoHackPurchased = false;
+        let autoHackInterval;
+        let clickUpgradeCost = 20; // initial cost for click upgrade;
+
+        // Machine stats
+        let machines = {
+            1: { cost: 50, coinsPerSecond: 1, owned: 0 },
+            2: { cost: 100, coinsPerSecond: 5, owned: 0 },
+            3: { cost: 200, coinsPerSecond: 10, owned: 0 }
+        };
+
+        const hackMessages = [
+            "Accessing mainframe...",
+            "Bypassing firewall...",
+            "Decrypting passwords...",
+            "Injecting payload...",
+            "Establishing backdoor...",
+            "Downloading sensitive data...",
+            "Uploading malicious script...",
+            "Compiling exploit...",
+            "Executing remote commands...",
+            "Covering tracks..."
+        ];
+
+        function hack() {
+            hackedLines++;
+            hackerPoints += coinsPerClick;
+            const randomMessage = hackMessages[Math.floor(Math.random() * hackMessages.length)];
+            const output = document.getElementById("output");
+            output.innerText += `${hackedLines}: ${randomMessage}\n`;
+            output.scrollTop = output.scrollHeight; // Auto-scroll to the bottom
+            updateStats();
+        }
+
+        function buyAutoHack() {
+            if (hackerPoints >= autoHackCost && !autoHackPurchased) {
+                hackerPoints -= autoHackCost;
+                autoHackPurchased = true;
+                document.getElementById("startAutoHackButton").disabled = false; // Enable Start Auto-Hack button
+                document.getElementById("autoHackButton").disabled = true; // Disable Buy Auto-Hack button
+                updateStats();
+            } else if (autoHackPurchased) {
+                alert("Auto-Hack already purchased!");
+            } else {
+                alert("Not enough hacker points to buy Auto-Hack!");
+            }
+        }
+
+        function startAutoHack() {
+            if (autoHackPurchased) {
+                clearInterval(autoHackInterval); // Prevent multiple intervals
+                autoHackInterval = setInterval(hack, 100); // Auto-hack every 100ms
+            } else {
+                alert("You need to purchase Auto-Hack first!");
+            }
+        }
+
+        function stopAutoHack() {
+            clearInterval(autoHackInterval); // Stop auto-hacking
+        }
+
+        function upgradeClick() {
+            if (hackerPoints >= clickUpgradeCost) {
+                hackerPoints -= clickUpgradeCost;
+                coinsPerClick++;
+                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5); // Increase cost for next upgrade
+                updateStats();
+            } else {
+                alert("Not enough hacker points to upgrade Hack Coins Per Click!");
+            }
+        }
+
+        function upgradeCPS() {
+            if (hackerPoints >= cpsUpgradeCost) {
+                hackerPoints -= cpsUpgradeCost;
+                coinsPerSecond += 15; // Increase coins per second
+                cpsUpgradeCost = Math.floor(cpsUpgradeCost * 1.5); // Increase cost for next upgrade
+                updateStats();
+            } else {
+                alert("Not enough hacker points to upgrade Hack Coins Per Second!");
+            }
+        }
+
+        function buyMachine(machineId) {
+            const machine = machines[machineId];
+            if (hackerPoints >= machine.cost) {
+                hackerPoints -= machine.cost;
+                machine.owned++;
+                machine.cost = Math.floor(machine.cost * 1.5); // Increase cost for next purchase
+                startMachineIncome(machineId);
+                updateStats();
+            } else {
+                alert("Not enough hacker points to buy this machine!");
+            }
+        }
+
+        function startMachineIncome(machineId) {
+            const machine = machines[machineId];
+            setInterval(() => {
+                hackerPoints += machine.coinsPerSecond * machine.owned;
+                updateStats();
+            }, 1000); // Add coins every second
+        }
+
+        function updateStats() {
+            document.getElementById("hackerPoints").innerText = hackerPoints;
+            document.getElementById("coinsPerClick").innerText = coinsPerClick;
+            document.getElementById("coinsPerSecond").innerText = coinsPerSecond;
+            document.getElementById("clickUpgradeCost").innerText = clickUpgradeCost;
+            document.getElementById("cpsUpgradeCost").innerText = cpsUpgradeCost;
+            document.getElementById("machine1Cost").innerText = machines[1].cost;
+            document.getElementById("machine2Cost").innerText = machines[2].cost;
+            document.getElementById("machine3Cost").innerText = machines[3].cost;
+        }
+
+        // Start passive income for coins per second
+        setInterval(() => {
+            hackerPoints += coinsPerSecond;
+            updateStats();
+        }, 1000);
+    </script>
+</body>
+</html>
